@@ -2,6 +2,7 @@
 node_modules
 output
 dist
+.vite
 
 # Editor directories and files
 .vscode/*

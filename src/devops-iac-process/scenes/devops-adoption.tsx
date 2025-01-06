@@ -4,8 +4,6 @@ import { chain, createRef, Reference } from '@motion-canvas/core';
 import { DefaultRect } from './../../components/Rect';
 import { Colors } from "./../../components/Colors";
 
-
-
 export default makeScene2D(function*(view) {
   view.fill(Colors["bg_dark"]);
   // Create your animations here
@@ -107,6 +105,4 @@ export default makeScene2D(function*(view) {
       yield* lines[i]().end(1, drawTime)
     }
   }
-
-
 });
