@@ -144,7 +144,7 @@ export default makeScene2D(
     yield* animateConnectionLine(s2LineRef, s2Ref, client().x());
 
     // Will be dumped at the end
-    yield* waitFor(30);
+    yield* waitFor(5);
   }
 )
 
