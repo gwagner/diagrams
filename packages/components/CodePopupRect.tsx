@@ -44,7 +44,7 @@ export class CodePopupRect extends Rect {
       <Rect grow={1} alignItems={"center"} justifyContent={"center"} />;
 
     codeContainer.add(
-      <Code ref={this.code_node} code={this.code_signal} fontSize={48} textWrap textAlign={"center"} fontWeight={800} opacity={0} />
+      <Code ref={this.code_node} code={this.code_signal} fontSize={36} textWrap textAlign={"center"} fontWeight={800} opacity={0} />
     )
 
     this.code_signal(props?.code || "");

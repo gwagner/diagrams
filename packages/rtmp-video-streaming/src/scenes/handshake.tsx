@@ -72,12 +72,12 @@ export default makeScene2D(
     );
 
     // The initial client packet
-    const connectCode = ["Message Contents:\n  AMF Version 3", "Payload: 0x03", "0x03"];
+    const connectCode = ["Message Contents:\n  AMF Version 3", "Payload:\n  0x03"];
     const clientConnectRef = codePopupAndAnimate(view, connectCode, Colors["green"], "Initiate: AMF Version");
     yield* animateCodePopup(clientConnectRef, connectCode, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 1)])
     const clientConnectLineRef = createConnectionLine(view, [
       [clientConnectRef().x(), clientConnectRef().y()],
-      [server().x(), clientConnectRef().y()]
+      [server().x() - transitPadding(), clientConnectRef().y()]
     ]);
     yield* animateConnectionLine(clientConnectLineRef, clientConnectRef, server().x());
 
@@ -86,15 +86,71 @@ export default makeScene2D(
     yield* animateCodePopup(serverConnectRef, connectCode, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 2)])
     const serverConnectLineRef = createConnectionLine(view, [
       [serverConnectRef().x(), serverConnectRef().y()],
-      [client().x(), serverConnectRef().y()]
+      [client().x() + transitPadding(), serverConnectRef().y()]
     ]);
     yield* animateConnectionLine(serverConnectLineRef, serverConnectRef, client().x());
 
+
+    // The initial client packet (C1)
+    const c1Code = [
+      "   Message Contents:\n    Time (4 Bytes)\n    Zeros (4 Bytes)\nRand Data (1528 Bytes)",
+      "      Payload: \n0x67 0x7C 0x48 0x1A\n0x00 0x00 0x00 0x00\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
+    ];
+    const c1Ref = codePopupAndAnimate(view, c1Code, Colors["green"], "C1");
+    yield* animateCodePopup(c1Ref, c1Code, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 3)])
+    const c1LineRef = createConnectionLine(view, [
+      [c1Ref().x(), c1Ref().y()],
+      [server().x() - transitPadding(), c1Ref().y()]
+    ]);
+    yield* animateConnectionLine(c1LineRef, c1Ref, server().x());
+
+
+    const s1Code = [
+      "   Message Contents:\n    Time (4 Bytes)\n    Zeros (4 Bytes)\nRand Data (1528 Bytes)",
+      "      Payload: \n0x67 0x7C 0x48 0x1A\n0x00 0x00 0x00 0x00\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
+    ];
+    const s1Ref = codePopupAndAnimate(view, s1Code, Colors["blue"], "S1");
+    yield* animateCodePopup(s1Ref, s1Code, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 4)])
+    const s1LineRef = createConnectionLine(view, [
+      [s1Ref().x(), s1Ref().y()],
+      [client().x() + transitPadding(), s1Ref().y()]
+    ]);
+    yield* animateConnectionLine(s1LineRef, s1Ref, client().x());
+
+
+    // The initial client packet
+    const c2Code = [
+      "   Message Contents:\n    Time (4 Bytes)\n    S1 Time (4 Bytes)\nS1 Rand Data (1528 Bytes)",
+      "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
+    ];
+    const c2Ref = codePopupAndAnimate(view, c2Code, Colors["green"], "C2");
+    yield* animateCodePopup(c2Ref, c2Code, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 5)])
+    const c2LineRef = createConnectionLine(view, [
+      [c2Ref().x(), c2Ref().y()],
+      [server().x() - transitPadding(), c2Ref().y()]
+    ]);
+    yield* animateConnectionLine(c2LineRef, c2Ref, server().x());
+
+    const s2Code = [
+      "   Message Contents:\n    Time (4 Bytes)\n    C1 Time (4 Bytes)\nC1 Rand Data (1528 Bytes)",
+      "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
+    ];
+    const s2Ref = codePopupAndAnimate(view, s2Code, Colors["blue"], "S2");
+    yield* animateCodePopup(s2Ref, s2Code, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 6)])
+    const s2LineRef = createConnectionLine(view, [
+      [s2Ref().x(), s2Ref().y()],
+      [client().x() + transitPadding(), s2Ref().y()]
+    ]);
+    yield* animateConnectionLine(s2LineRef, s2Ref, client().x());
 
     // Will be dumped at the end
     yield* waitFor(30);
   }
 )
+
+function transitPadding(): number {
+  return 8 + (packet_size / 2)
+}
 
 function codePopupAndAnimate(view: View2D, code: string[], color: string, title: string): Reference<CodePopupRect> {
   const ref = createRef<CodePopupRect>();
@@ -109,22 +165,23 @@ function* animateCodePopup(ref: Reference<CodePopupRect>, code: string[], positi
   yield* ref().opacity(.9, .5)
   yield* chain(
     all(
-      ref().height(popup_height, 1),
-      ref().width(popup_width, 1),
+      ref().height(popup_height, .5),
+      ref().width(popup_width, .5),
     ),
     ref().showContents(),
   )
+  yield* waitFor(.75)
   for (let i = 1; i < code.length; i++) {
     yield* ref().code_signal(code[i], .5);
   }
+  yield* waitFor(.75)
   yield* all(
     ref().opacity(1, .2),
-    ref().width(packet_size, 2),
-    ref().height(packet_size, 2),
+    ref().width(packet_size, 1),
+    ref().height(packet_size, 1),
     ref().hideContents(),
+    ref().position(position, 1)
   )
-
-  yield* ref().position(position, 1);
 }
 
 function createConnectionLine(view: View2D, points: Array<[number, number]>): Reference<Line> {
