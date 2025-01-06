@@ -1,45 +1,13 @@
 
-import { Line, makeScene2D, Node, Rect, Txt } from '@motion-canvas/2d';
-import { all, chain, createRef, makeRef, map, Reference, tween } from '@motion-canvas/core';
-import { DefaultRect } from '../components/Rect';
-
-const colors = {
-  "bg": "#1a1b26",
-  "bg_dark": "#16161e",
-  "bg_dark1": "#0C0E14",
-  "bg_highlight": "#292e42",
-  "blue": "#7aa2f7",
-  "blue0": "#3d59a1",
-  "blue1": "#2ac3de",
-  "blue2": "#0db9d7",
-  "blue5": "#89ddff",
-  "blue6": "#b4f9f8",
-  "blue7": "#394b70",
-  "comment": "#565f89",
-  "cyan": "#7dcfff",
-  "dark3": "#545c7e",
-  "dark5": "#737aa2",
-  "fg": "#c0caf5",
-  "fg_dark": "#a9b1d6",
-  "fg_gutter": "#3b4261",
-  "green": "#9ece6a",
-  "green1": "#73daca",
-  "green2": "#41a6b5",
-  "magenta": "#bb9af7",
-  "magenta2": "#ff007c",
-  "orange": "#ff9e64",
-  "purple": "#9d7cd8",
-  "red": "#f7768e",
-  "red1": "#db4b4b",
-  "teal": "#1abc9c",
-  "terminal_black": "#414868",
-  "yellow": "#e0af68",
-};
+import { Line, makeScene2D, Rect, Txt } from '@motion-canvas/2d';
+import { chain, createRef, Reference } from '@motion-canvas/core';
+import { DefaultRect } from './../../components/Rect';
+import { Colors } from "./../../components/Colors";
 
 
 
 export default makeScene2D(function*(view) {
-  view.fill(colors["bg_dark"]);
+  view.fill(Colors["bg_dark"]);
   // Create your animations here
 
   const gap = 120;
@@ -62,16 +30,16 @@ export default makeScene2D(function*(view) {
   )
   container.add(
     <Rect direction={"row"} height={"100%"} justifyContent={"space-between"} alignContent={"center"} gap={gap} >
-      <DefaultRect ref={review} fill={colors["green"]} text={"Review Organizational Goals"} text_color={"white"} />
-      <DefaultRect ref={evaluate} fill={colors["blue"]} text={"Evaluate Existing Infrastructure"} text_color={"white"} prev_node={review} />
-      <DefaultRect ref={pipeline} fill={colors["magenta"]} text={"Introduce Pipeline Automation"} text_color={"white"} prev_node={evaluate} />
+      <DefaultRect ref={review} fill={Colors["green"]} text={"Review Organizational Goals"} text_color={"white"} />
+      <DefaultRect ref={evaluate} fill={Colors["blue"]} text={"Evaluate Existing Infrastructure"} text_color={"white"} prev_node={review} />
+      <DefaultRect ref={pipeline} fill={Colors["magenta"]} text={"Introduce Pipeline Automation"} text_color={"white"} prev_node={evaluate} />
     </Rect>
   );
   container.add(
     <Rect direction={"column"} gap={gap} justifyContent={"space-between"}>
-      <DefaultRect ref={migrate} fill={colors["orange"]} text={"Migrate Services"} text_color={"white"} prev_node={pipeline} />
-      <DefaultRect ref={measure} fill={colors["teal"]} text={"Measure KPIs Against Goals"} text_color={"white"} prev_node={migrate} />
-      <DefaultRect ref={iterate} fill={colors["green"]} text={"Iterate and Update"} text_color={"white"} prev_node={measure} />
+      <DefaultRect ref={migrate} fill={Colors["orange"]} text={"Migrate Services"} text_color={"white"} prev_node={pipeline} />
+      <DefaultRect ref={measure} fill={Colors["teal"]} text={"Measure KPIs Against Goals"} text_color={"white"} prev_node={migrate} />
+      <DefaultRect ref={iterate} fill={Colors["green"]} text={"Iterate and Update"} text_color={"white"} prev_node={measure} />
     </Rect>
   );
 
