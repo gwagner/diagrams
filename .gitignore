@@ -3,6 +3,7 @@ node_modules
 output
 dist
 .vite
+palette.png
 
 # Editor directories and files
 .vscode/*
