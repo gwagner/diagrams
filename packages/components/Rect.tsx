@@ -1,21 +1,21 @@
-import { initial, Length, Line, Rect, RectProps, signal, Txt } from "@motion-canvas/2d";
-import { Color, createRef, createSignal, PossibleVector2, Reference, SignalValue, SimpleSignal, useLogger, Vector2 } from "@motion-canvas/core";
+import { Line, Rect, RectProps, Txt } from "@motion-canvas/2d";
+import { Color, createRef, Reference, SignalValue, useLogger, Vector2 } from "@motion-canvas/core";
 import { pSBC } from "./pscb";
 
-export interface DefaultRectProps extends RectProps {
-  prev_node?: Reference<DefaultRect>,
+export interface FlowRectProps extends RectProps {
+  prev_node?: Reference<FlowRect>,
   text: SignalValue<string>;
   text_color: SignalValue<string>;
 }
 
-export class DefaultRect extends Rect {
+export class FlowRect extends Rect {
 
-  private readonly previous_node?: Reference<DefaultRect>;
+  private readonly previous_node?: Reference<FlowRect>;
 
   private readonly text_node = createRef<Txt>();
 
   // implementation
-  public constructor(props?: DefaultRectProps) {
+  public constructor(props?: FlowRectProps) {
     super({
       // If you wanted to ensure that layout was always
       // true for this component, you could add it here

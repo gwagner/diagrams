@@ -1,0 +1,6 @@
+{
+  "name": "valewood-diagrams",
+  "workspaces": [
+    "./packages/*"
+  ]
+}
