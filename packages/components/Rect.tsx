@@ -37,7 +37,7 @@ export class FlowRect extends Rect {
       this.previous_node = props.prev_node;
     }
 
-    const text = <Txt ref={this.text_node} text={props.text} fill={props.text_color} fontSize={32} textWrap textAlign={"center"} fontWeight={800} />;
+    const text = <Txt ref={this.text_node} width={"100%"} text={props.text} fill={props.text_color} fontSize={32} textWrap textAlign={"center"} fontWeight={800} />;
 
     this.add(text);
   }
