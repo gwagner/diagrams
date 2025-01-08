@@ -67,54 +67,21 @@ export default makeScene2D(
     serverAnchorPoint = Vector2.createSignal(() => [server().position().x, top().position().y + (server().height() / 2)]);
     verticalLen = lines[0]().arcLength();
 
-    useLogger().info("Client Anchor Point: " + clientAnchorPoint.y())
-    useLogger().info("Vert Len: " + verticalLen)
+    let c0Code = ["Message Contents:\n  AMF Version 3", "Payload:\n  0x03"];
+    yield* sendMessage(view, "C0", c0Code, Colors["green"], clientAnchorPoint, serverAnchorPoint, 1)
+    yield* sendMessage(view, "S0", c0Code, Colors["blue"], serverAnchorPoint, clientAnchorPoint, 2)
 
-    // The initial client packet
-    const c0Code = ["Message Contents:\n  AMF Version 3", "Payload:\n  0x03"];
-    const c0Ref = codePopupAndAnimate(view, c0Code, Colors["green"], "C0");
-    yield* animateCodePopup(c0Ref, c0Code, clientAnchorPoint().addY(((verticalLen / flows) * 1)))
-    const c0LineRef = createConnectionLine(view, [
-      [c0Ref().x(), c0Ref().y()],
-      [server().x() - transitPadding(), c0Ref().y()]
-    ]);
-    yield* animateConnectionLine(c0LineRef, c0Ref, server().x());
-
-    // The initial server packet response 
-    const s0Ref = codePopupAndAnimate(view, c0Code, Colors["blue"], "S0");
-    yield* animateCodePopup(s0Ref, c0Code, serverAnchorPoint().addY(((verticalLen / flows) * 2)))
-    const s0LineRef = createConnectionLine(view, [
-      [s0Ref().x(), s0Ref().y()],
-      [client().x() + transitPadding(), s0Ref().y()]
-    ]);
-    yield* animateConnectionLine(s0LineRef, s0Ref, client().x());
-
-
-    // The initial client packet (C1)
     const c1Code = [
       "   Message Contents:\n    Time (4 Bytes)\n    Zeros (4 Bytes)\nRand Data (1528 Bytes)",
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x00 0x00 0x00 0x00\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
-    const c1Ref = codePopupAndAnimate(view, c1Code, Colors["green"], "C1");
-    yield* animateCodePopup(c1Ref, c1Code, clientAnchorPoint().addY(((verticalLen / flows) * 3)))
-    const c1LineRef = createConnectionLine(view, [
-      [c1Ref().x(), c1Ref().y()],
-      [server().x() - transitPadding(), c1Ref().y()]
-    ]);
-    yield* animateConnectionLine(c1LineRef, c1Ref, server().x());
-
+    yield* sendMessage(view, "C1", c1Code, Colors["green"], clientAnchorPoint, serverAnchorPoint, 3)
 
     const s1Code = [
       "   Message Contents:\n    Time (4 Bytes)\n    Zeros (4 Bytes)\nRand Data (1528 Bytes)",
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x00 0x00 0x00 0x00\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
-    const s1Ref = codePopupAndAnimate(view, s1Code, Colors["blue"], "S1");
-    yield* animateCodePopup(s1Ref, s1Code, serverAnchorPoint().addY(((verticalLen / flows) * 4)))
-    const s1LineRef = createConnectionLine(view, [
-      [s1Ref().x(), s1Ref().y()],
-      [client().x() + transitPadding(), s1Ref().y()]
-    ]);
-    yield* animateConnectionLine(s1LineRef, s1Ref, client().x());
+    yield* sendMessage(view, "S1", s1Code, Colors["blue"], serverAnchorPoint, clientAnchorPoint, 4)
 
 
     // The initial client packet
@@ -122,30 +89,29 @@ export default makeScene2D(
       "   Message Contents:\n    Time (4 Bytes)\n    S1 Time (4 Bytes)\nS1 Rand Data (1528 Bytes)",
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
-    const c2Ref = codePopupAndAnimate(view, c2Code, Colors["green"], "C2");
-    yield* animateCodePopup(c2Ref, c2Code, clientAnchorPoint().addY(((verticalLen / flows) * 5)))
-    const c2LineRef = createConnectionLine(view, [
-      [c2Ref().x(), c2Ref().y()],
-      [server().x() - transitPadding(), c2Ref().y()]
-    ]);
-    yield* animateConnectionLine(c2LineRef, c2Ref, server().x());
+    yield* sendMessage(view, "C2", c2Code, Colors["green"], clientAnchorPoint, serverAnchorPoint, 5)
 
     const s2Code = [
       "   Message Contents:\n    Time (4 Bytes)\n    C1 Time (4 Bytes)\nC1 Rand Data (1528 Bytes)",
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
-    const s2Ref = codePopupAndAnimate(view, s2Code, Colors["blue"], "S2");
-    yield* animateCodePopup(s2Ref, s2Code, serverAnchorPoint().addY(((verticalLen / flows) * 6)))
-    const s2LineRef = createConnectionLine(view, [
-      [s2Ref().x(), s2Ref().y()],
-      [client().x() + transitPadding(), s2Ref().y()]
-    ]);
-    yield* animateConnectionLine(s2LineRef, s2Ref, client().x());
+    yield* sendMessage(view, "S2", s2Code, Colors["blue"], serverAnchorPoint, clientAnchorPoint, 6)
 
     // Will be dumped at the end
     yield* waitFor(5);
   }
 )
+
+function* sendMessage(view: View2D, title: string, code: string[], color: string, anchor: Vector2Signal<void>, destination: Vector2Signal<void>, index: number) {
+  // The initial client packet
+  const popup = codePopupAndAnimate(view, code, color, title);
+  yield* animateCodePopup(popup, code, anchor().addY(((verticalLen / flows) * index)))
+  const connection = createConnectionLine(view, [
+    [popup().x(), popup().y()],
+    [destination().x - transitPadding(), popup().y()]
+  ]);
+  yield* animateConnectionLine(connection, popup, destination().x);
+}
 
 function transitPadding(): number {
   return 8 + (packet_size / 2)
