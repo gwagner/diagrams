@@ -1,6 +1,6 @@
 
 import { Line, makeScene2D, Rect, Txt } from '@motion-canvas/2d';
-import { chain, createRef, Reference } from '@motion-canvas/core';
+import { all, chain, createRef, Reference, ThreadGenerator } from '@motion-canvas/core';
 import { FlowRect } from 'valewood-components/Rect';
 import { Colors } from "valewood-components/Colors";
 import { Arrow } from 'valewood-components/arrow/generic-arrow';
@@ -39,7 +39,7 @@ export default makeScene2D(
       <Rect direction={"column"} gap={gap} justifyContent={"space-between"}>
         <FlowRect ref={migrate} fill={Colors["orange"]} text={"Migrate Services"} text_color={"white"} prev_node={pipeline} />
         <FlowRect ref={measure} fill={Colors["teal"]} text={"Measure KPIs Against Goals"} text_color={"white"} prev_node={migrate} />
-        <FlowRect ref={iterate} fill={Colors["green"]} text={"Iterate and Update"} text_color={"white"} prev_node={measure} />
+        <FlowRect ref={iterate} fill={Colors["green"]} text={"Learn, Iterate,\nand Update"} text_color={"white"} prev_node={measure} />
       </Rect>
     );
     view.add(container)
@@ -68,14 +68,38 @@ export default makeScene2D(
     )
 
 
+    var node_order: Array<Line> = [];
     const drawTime = .75
-    yield* chain(...lines.map(l => l().end(1, drawTime)))
+    yield* chain(...lines.slice(0, 3).map(l => l().end(1, drawTime)))
+
     for (let j = 0; j < 3; j++) {
       for (let i = 3; i < lines.length; i++) {
-        yield* lines[i]().endArrow(false)
-        yield* lines[i]().end(0, .2)
-        yield* lines[i]().endArrow(true)
-        yield* lines[i]().end(1, drawTime)
+        var animations: Array<ThreadGenerator> = []
+        lines[i]().endArrow(false)
+        animations.push(lines[i]().endArrow(true, drawTime))
+        animations.push(lines[i]().end(1, drawTime))
+
+        // Add a node to the stack
+        node_order.push(lines[i]());
+
+        if (node_order.length < 2) {
+          yield* all(...animations)
+          continue;
+        }
+
+        // pull the first node from the stack
+        let node = node_order.shift()
+
+        // Add an animation for that node
+        animations.push(node.opacity(0, drawTime))
+
+        // Run all the animations for the nodes
+        yield* all(...animations)
+
+        // Reset the node
+        node.end(0)
+        node.opacity(1)
+
       }
     }
   });

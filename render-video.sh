@@ -32,8 +32,11 @@ if [[ "$real_input" != "$ALLOWED_BASE"* ]]; then
   exit 1
 fi
 
-
 ffmpeg -y -i $real_input/output/project/000%3d.png -vf palettegen $real_input/output/palette.png
 ffmpeg -y -i $real_input/output/project/000%3d.png -i $real_input/output/palette.png -lavfi paletteuse -loop 0 $real_input/video.gif
 
+## Cleanup previous render
+rm -f $real_input/output/project/*.png
+
+## Play the vid
 mpv $real_input/video.gif
