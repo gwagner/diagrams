@@ -75,6 +75,7 @@ export default makeScene2D(
     for (let j = 0; j < 3; j++) {
       for (let i = 3; i < lines.length; i++) {
         var animations: Array<ThreadGenerator> = []
+
         lines[i]().endArrow(false)
         animations.push(lines[i]().endArrow(true, drawTime))
         animations.push(lines[i]().end(1, drawTime))
