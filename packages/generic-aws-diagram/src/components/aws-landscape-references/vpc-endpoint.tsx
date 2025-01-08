@@ -1,0 +1,32 @@
+import { createRef, Reference } from "@motion-canvas/core/lib/utils"
+import { VPCEndpoint } from "valewood-components/cloud/aws/vpc-endpoint";
+import { AwsLandscapeComponentRef, BaseRef } from "./base";
+import { View2D } from "@motion-canvas/2d/lib/components";
+import { AWSLandscape, AWSLandscapeProps, Tags } from "../aws-landscape";
+
+export class VPCEndpointRef extends BaseRef implements AwsLandscapeComponentRef  {
+
+    private _ref: Reference<VPCEndpoint>;
+    public get ref(): Reference<VPCEndpoint> {
+        return this._ref;
+    }
+    private set ref(value: Reference<VPCEndpoint>) {
+        this._ref = value;
+    }
+
+    constructor(props: AWSLandscapeProps) {
+        super(props)
+        this._ref = createRef<VPCEndpoint>();
+
+        this.tags = [Tags.Configurable, Tags.EndUser, Tags.Management]
+        this.addComponentRefs(this._ref)
+    }
+
+    setup()  {
+        return (<VPCEndpoint ref={this.ref} fontSize={this.props.fontSize} tags={this.tags} />)
+    }
+
+    drawLines(view: View2D, parent: AWSLandscape): void { 
+
+    }
+}

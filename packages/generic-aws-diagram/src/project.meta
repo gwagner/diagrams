@@ -1,10 +1,10 @@
 {
   "version": 0,
   "shared": {
-    "background": "rgb(110,54,54)",
+    "background": "rgb(45,51,59)",
     "range": [
       0,
-      null
+      1000000
     ],
     "size": {
       "x": 1920,
@@ -17,14 +17,15 @@
     "resolutionScale": 1
   },
   "rendering": {
-    "fps": 30,
+    "fps": 60,
     "resolutionScale": 1,
     "colorSpace": "srgb",
     "exporter": {
-      "name": "@motion-canvas/ffmpeg",
+      "name": "@motion-canvas/core/image-sequence",
       "options": {
-        "fastStart": true,
-        "includeAudio": true
+        "fileType": "image/png",
+        "quality": 100,
+        "groupByScene": false
       }
     }
   }

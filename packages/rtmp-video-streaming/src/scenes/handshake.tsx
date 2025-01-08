@@ -72,23 +72,23 @@ export default makeScene2D(
     );
 
     // The initial client packet
-    const connectCode = ["Message Contents:\n  AMF Version 3", "Payload:\n  0x03"];
-    const clientConnectRef = codePopupAndAnimate(view, connectCode, Colors["green"], "Initiate: AMF Version");
-    yield* animateCodePopup(clientConnectRef, connectCode, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 1)])
-    const clientConnectLineRef = createConnectionLine(view, [
-      [clientConnectRef().x(), clientConnectRef().y()],
-      [server().x() - transitPadding(), clientConnectRef().y()]
+    const c0Code = ["Message Contents:\n  AMF Version 3", "Payload:\n  0x03"];
+    const c0Ref = codePopupAndAnimate(view, c0Code, Colors["green"], "Initiate: AMF Version");
+    yield* animateCodePopup(c0Ref, c0Code, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 1)])
+    const c0LineRef = createConnectionLine(view, [
+      [c0Ref().x(), c0Ref().y()],
+      [server().x() - transitPadding(), c0Ref().y()]
     ]);
-    yield* animateConnectionLine(clientConnectLineRef, clientConnectRef, server().x());
+    yield* animateConnectionLine(c0LineRef, c0Ref, server().x());
 
     // The initial server packet response 
-    const serverConnectRef = codePopupAndAnimate(view, connectCode, Colors["blue"], "Respond: AMF Version");
-    yield* animateCodePopup(serverConnectRef, connectCode, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 2)])
-    const serverConnectLineRef = createConnectionLine(view, [
-      [serverConnectRef().x(), serverConnectRef().y()],
-      [client().x() + transitPadding(), serverConnectRef().y()]
+    const s0Ref = codePopupAndAnimate(view, c0Code, Colors["blue"], "Respond: AMF Version");
+    yield* animateCodePopup(s0Ref, c0Code, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 2)])
+    const s0LineRef = createConnectionLine(view, [
+      [s0Ref().x(), s0Ref().y()],
+      [client().x() + transitPadding(), s0Ref().y()]
     ]);
-    yield* animateConnectionLine(serverConnectLineRef, serverConnectRef, client().x());
+    yield* animateConnectionLine(s0LineRef, s0Ref, client().x());
 
 
     // The initial client packet (C1)
