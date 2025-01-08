@@ -1,5 +1,5 @@
 import { Line, Rect, RectProps, Txt } from "@motion-canvas/2d";
-import { Color, createRef, makeRef, Reference, SignalValue, useLogger, Vector2 } from "@motion-canvas/core";
+import { Color, createRef, makeRef, Reference, SignalValue, useLogger, Vector2, Vector2Signal } from "@motion-canvas/core";
 import { Arrow } from "valewood-components/arrow/generic-arrow"
 import { pSBC } from "./pscb";
 import { Edge } from "./arrow/enums";
@@ -67,20 +67,20 @@ export class FlowRect extends Rect {
 
   }
 
-  public getAbsLeftCenter(): Vector2 {
-    return new Vector2(this.absolutePosition().x - this.width() / 2, this.absolutePosition().y);
+  public getAbsLeftCenter(): Vector2Signal {
+    return Vector2.createSignal(() => [this.absolutePosition().x - this.width() / 2, this.absolutePosition().y]);
   }
 
-  public getAbsRightCenter(): Vector2 {
-    return new Vector2(this.absolutePosition().x + this.width() / 2, this.absolutePosition().y);
+  public getAbsRightCenter(): Vector2Signal {
+    return Vector2.createSignal(() => [this.absolutePosition().x + this.width() / 2, this.absolutePosition().y]);
   }
 
-  public getAbsTopCenter(): Vector2 {
-    return new Vector2(this.absolutePosition().x, this.absolutePosition().y - this.height() / 2);
+  public getAbsTopCenter(): Vector2Signal {
+    return Vector2.createSignal(() => [this.absolutePosition().x, this.absolutePosition().y - this.height() / 2]);
   }
 
-  public getAbsBottomCenter(): Vector2 {
-    return new Vector2(this.absolutePosition().x, this.absolutePosition().y + this.height() / 2);
+  public getAbsBottomCenter(): Vector2Signal {
+    return Vector2.createSignal(() => [this.absolutePosition().x, this.absolutePosition().y + this.height() / 2]);
   }
 }
 

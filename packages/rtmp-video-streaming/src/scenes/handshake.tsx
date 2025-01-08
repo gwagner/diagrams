@@ -1,5 +1,5 @@
 import { Line, makeScene2D, Rect, Txt, View2D } from '@motion-canvas/2d';
-import { all, chain, createRef, Reference, useLogger, waitFor } from '@motion-canvas/core';
+import { all, chain, createRef, Reference, useLogger, Vector2, Vector2Signal, waitFor } from '@motion-canvas/core';
 import { FlowRect } from 'valewood-components/Rect';
 import { CodePopupRect } from 'valewood-components/CodePopupRect';
 import { Colors } from "valewood-components/Colors";
@@ -11,20 +11,12 @@ const packet_size = 50;
 const width = 1400;
 let flows = 7;
 let verticalLen = 0;
-let clientAnchorPoint = 0;
-let serverAnchorPoint = 0;
+let clientAnchorPoint: Vector2Signal<void>;
+let serverAnchorPoint: Vector2Signal<void>;
 
 export default makeScene2D(
   function*(view): any {
     view.fill(Colors["bg_dark"]);
-
-
-    let containerTop = <Rect layout position={[0, -300]} alignItems={"center"} gap={gap} />;
-    let containerBottom = <Rect layout position={[0, 400]} alignItems={"center"} gap={gap} />;
-    const client = createRef<FlowRect>();
-    const server = createRef<FlowRect>();
-    const clientBottom = createRef<FlowRect>();
-    const serverBottom = createRef<FlowRect>();
 
     view.add(
       <Txt
@@ -34,47 +26,54 @@ export default makeScene2D(
         position={[0, -450]}
       />
     )
-    containerTop.add(
-      <Rect direction={"row"} height={"100%"} width={width} justifyContent={"space-between"} alignContent={"center"} gap={gap} >
+
+    const top = createRef<Rect>();
+    const bottom = createRef<Rect>();
+    const client = createRef<FlowRect>();
+    const server = createRef<FlowRect>();
+    const clientBottom = createRef<FlowRect>();
+    const serverBottom = createRef<FlowRect>();
+
+    view.add(
+      <Rect layout ref={top} position={[0, -300]} width={width} alignItems={"center"} justifyContent={"space-between"} gap={gap}>
         <FlowRect ref={client} fill={Colors["green"]} text={"Client"} text_color={"white"} textAlign={"center"} />
-        <FlowRect ref={server} fill={Colors["blue"]} text={"Server"} text_color={"white"} textAlign={"center"} prev_node={client} />
+        <FlowRect ref={server} fill={Colors["blue"]} text={"Server"} text_color={"white"} textAlign={"center"} />
       </Rect>
     );
 
-    containerBottom.add(
-      <Rect direction={"row"} height={"100%"} width={width} justifyContent={"space-between"} alignContent={"center"} gap={gap} >
+    view.add(
+      <Rect layout ref={bottom} position={[0, 400]} width={width} alignItems={"center"} justifyContent={"space-between"} gap={gap} >
         <FlowRect ref={clientBottom} fill={Colors["green"]} text={""} text_color={"white"} prev_node={client} minHeight={50} />
         <FlowRect ref={serverBottom} fill={Colors["blue"]} text={""} text_color={"white"} prev_node={server} minHeight={50} />
       </Rect>
     );
 
-
+    // Vertical connection lines
     let lines: Array<Reference<Line>> = [];
-    lines.push(clientBottom().connectVerticalBottomToTop())
-    lines.push(serverBottom().connectVerticalBottomToTop())
+    lines.push(client().connectBottomToTop(clientBottom).draw(view))
+    lines.push(server().connectBottomToTop(serverBottom).draw(view))
     for (let i = 0; i < lines.length; i++) {
-      lines[i]().end(1)
+      lines[i]().end(0)
       lines[i]().endArrow(false)
       lines[i]().lineDash([12, 6]);
     }
 
+    yield* all(
+      ...lines.map((l) => l().end(1, .5))
+    )
+
     // Get the length of the vertical line from client 
-    clientAnchorPoint = client().absolutePosition().y + (client().height() / 2);
-    serverAnchorPoint = server().absolutePosition().y + (server().height() / 2);
+    clientAnchorPoint = Vector2.createSignal(() => [client().position().x, top().position().y + (client().height() / 2)]);
+    serverAnchorPoint = Vector2.createSignal(() => [server().position().x, top().position().y + (server().height() / 2)]);
     verticalLen = lines[0]().arcLength();
 
-    view.add(lines.map((l) => l()));
-    view.add(containerTop);
-    view.add(containerBottom);
-
-    yield* chain(
-      lines[0]().end(1, .2),
-    );
+    useLogger().info("Client Anchor Point: " + clientAnchorPoint.y())
+    useLogger().info("Vert Len: " + verticalLen)
 
     // The initial client packet
     const c0Code = ["Message Contents:\n  AMF Version 3", "Payload:\n  0x03"];
-    const c0Ref = codePopupAndAnimate(view, c0Code, Colors["green"], "Initiate: AMF Version");
-    yield* animateCodePopup(c0Ref, c0Code, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 1)])
+    const c0Ref = codePopupAndAnimate(view, c0Code, Colors["green"], "C0");
+    yield* animateCodePopup(c0Ref, c0Code, clientAnchorPoint().addY(((verticalLen / flows) * 1)))
     const c0LineRef = createConnectionLine(view, [
       [c0Ref().x(), c0Ref().y()],
       [server().x() - transitPadding(), c0Ref().y()]
@@ -82,8 +81,8 @@ export default makeScene2D(
     yield* animateConnectionLine(c0LineRef, c0Ref, server().x());
 
     // The initial server packet response 
-    const s0Ref = codePopupAndAnimate(view, c0Code, Colors["blue"], "Respond: AMF Version");
-    yield* animateCodePopup(s0Ref, c0Code, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 2)])
+    const s0Ref = codePopupAndAnimate(view, c0Code, Colors["blue"], "S0");
+    yield* animateCodePopup(s0Ref, c0Code, serverAnchorPoint().addY(((verticalLen / flows) * 2)))
     const s0LineRef = createConnectionLine(view, [
       [s0Ref().x(), s0Ref().y()],
       [client().x() + transitPadding(), s0Ref().y()]
@@ -97,7 +96,7 @@ export default makeScene2D(
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x00 0x00 0x00 0x00\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
     const c1Ref = codePopupAndAnimate(view, c1Code, Colors["green"], "C1");
-    yield* animateCodePopup(c1Ref, c1Code, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 3)])
+    yield* animateCodePopup(c1Ref, c1Code, clientAnchorPoint().addY(((verticalLen / flows) * 3)))
     const c1LineRef = createConnectionLine(view, [
       [c1Ref().x(), c1Ref().y()],
       [server().x() - transitPadding(), c1Ref().y()]
@@ -110,7 +109,7 @@ export default makeScene2D(
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x00 0x00 0x00 0x00\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
     const s1Ref = codePopupAndAnimate(view, s1Code, Colors["blue"], "S1");
-    yield* animateCodePopup(s1Ref, s1Code, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 4)])
+    yield* animateCodePopup(s1Ref, s1Code, serverAnchorPoint().addY(((verticalLen / flows) * 4)))
     const s1LineRef = createConnectionLine(view, [
       [s1Ref().x(), s1Ref().y()],
       [client().x() + transitPadding(), s1Ref().y()]
@@ -124,7 +123,7 @@ export default makeScene2D(
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
     const c2Ref = codePopupAndAnimate(view, c2Code, Colors["green"], "C2");
-    yield* animateCodePopup(c2Ref, c2Code, [client().x(), clientAnchorPoint + ((verticalLen / flows) * 5)])
+    yield* animateCodePopup(c2Ref, c2Code, clientAnchorPoint().addY(((verticalLen / flows) * 5)))
     const c2LineRef = createConnectionLine(view, [
       [c2Ref().x(), c2Ref().y()],
       [server().x() - transitPadding(), c2Ref().y()]
@@ -136,7 +135,7 @@ export default makeScene2D(
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
     const s2Ref = codePopupAndAnimate(view, s2Code, Colors["blue"], "S2");
-    yield* animateCodePopup(s2Ref, s2Code, [server().x(), serverAnchorPoint + ((verticalLen / flows) * 6)])
+    yield* animateCodePopup(s2Ref, s2Code, serverAnchorPoint().addY(((verticalLen / flows) * 6)))
     const s2LineRef = createConnectionLine(view, [
       [s2Ref().x(), s2Ref().y()],
       [client().x() + transitPadding(), s2Ref().y()]
@@ -161,7 +160,7 @@ function codePopupAndAnimate(view: View2D, code: string[], color: string, title:
   return ref;
 }
 
-function* animateCodePopup(ref: Reference<CodePopupRect>, code: string[], position: [number, number]): any {
+function* animateCodePopup(ref: Reference<CodePopupRect>, code: string[], position: [number, number] | Vector2): any {
   yield* ref().opacity(.9, .5)
   yield* chain(
     all(
