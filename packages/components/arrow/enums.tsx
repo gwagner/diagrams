@@ -5,8 +5,6 @@ export enum Edge {
     Right
 }
 
-
-
 export enum ArrowEnds {
     Start = 1,
     End,
