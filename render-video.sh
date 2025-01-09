@@ -32,8 +32,13 @@ if [[ "$real_input" != "$ALLOWED_BASE"* ]]; then
   exit 1
 fi
 
-ffmpeg -y -i $real_input/output/project/000%3d.png -vf palettegen $real_input/output/palette.png
-ffmpeg -y -i $real_input/output/project/000%3d.png -i $real_input/output/palette.png -lavfi paletteuse -loop 0 $real_input/video.gif
+if ! ls $real_input/output/project/*.png 1> /dev/null 2>&1; then
+    echo "No PNG files exist in $real_input/output/project/*.png.  You must render in Motion Canvas first"
+    exit 1
+fi
+
+ffmpeg -y -i $real_input/output/project/%6d.png -vf palettegen $real_input/output/palette.png
+ffmpeg -y -i $real_input/output/project/%6d.png -i $real_input/output/palette.png -lavfi paletteuse -loop 0 $real_input/video.gif
 
 ## Cleanup previous render
 rm -f $real_input/output/project/*.png

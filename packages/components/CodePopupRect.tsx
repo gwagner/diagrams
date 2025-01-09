@@ -1,5 +1,5 @@
-import { Code, Line, Node, NodeProps, Rect, RectProps, Txt } from "@motion-canvas/2d";
-import { all, Color, createRef, Reference, SignalValue, useLogger, Vector2 } from "@motion-canvas/core";
+import { Code, Rect, RectProps, Txt } from "@motion-canvas/2d";
+import { all, Color, createRef, Reference, SignalValue, } from "@motion-canvas/core";
 import { pSBC } from "./pscb";
 
 export interface CodePopupRectProps extends RectProps {
@@ -11,6 +11,7 @@ export interface CodePopupRectProps extends RectProps {
 
 export class CodePopupRect extends Rect {
 
+  private readonly container: Reference<CodePopupRect>;
   private readonly title_node = createRef<Txt>();
   private readonly code_node = createRef<Code>();
   public code_signal = Code.createSignal("");
@@ -28,12 +29,14 @@ export class CodePopupRect extends Rect {
       padding: 32,
       radius: 20,
       stroke: props?.fill,
+      smoothCorners: true,
       wrap: "wrap",
       direction: "column",
       ...props,
       fill: new Color(fill),
     });
 
+    this.container = () => this;
 
     const text =
       <Rect width={"100%"} alignItems={"start"}>
@@ -41,11 +44,10 @@ export class CodePopupRect extends Rect {
       </Rect>;
 
     const codeContainer =
-      <Rect grow={1} alignItems={"center"} justifyContent={"center"} />;
+      <Rect grow={1} alignItems={"center"} justifyContent={"center"}>
+        <Code ref={this.code_node} code={this.code_signal} fontSize={36} justifyContent={"center"} textWrap textAlign={"center"} fontWeight={800} opacity={0} />
+      </Rect>;
 
-    codeContainer.add(
-      <Code ref={this.code_node} code={this.code_signal} fontSize={36} textWrap textAlign={"center"} fontWeight={800} opacity={0} />
-    )
 
     this.code_signal(props?.code || "");
 

@@ -1,5 +1,5 @@
 import { Line, makeScene2D, Rect, Txt, View2D } from '@motion-canvas/2d';
-import { all, chain, createRef, Reference, useLogger, Vector2, Vector2Signal, waitFor } from '@motion-canvas/core';
+import { all, chain, createRef, DEFAULT, Reference, useLogger, Vector2, Vector2Signal, waitFor } from '@motion-canvas/core';
 import { FlowRect } from 'valewood-components/Rect';
 import { CodePopupRect } from 'valewood-components/CodePopupRect';
 import { Colors } from "valewood-components/Colors";
@@ -47,6 +47,9 @@ export default makeScene2D(
         <FlowRect ref={serverBottom} fill={Colors["blue"]} text={""} text_color={"white"} prev_node={server} minHeight={50} />
       </Rect>
     );
+    client().maxWidth(DEFAULT);
+    server().maxWidth(DEFAULT);
+
 
     // Vertical connection lines
     let lines: Array<Reference<Line>> = [];
@@ -86,41 +89,95 @@ export default makeScene2D(
 
     // The initial client packet
     const c2Code = [
-      "   Message Contents:\n    Time (4 Bytes)\n    S1 Time (4 Bytes)\nS1 Rand Data (1528 Bytes)",
+      "  Message Contents:\n    Time (4 Bytes)\n  S1 Time (4 Bytes)\n S1 Rand (1528 Bytes)",
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
     yield* sendMessage(view, "C2", c2Code, Colors["green"], clientAnchorPoint, serverAnchorPoint, 5)
 
     const s2Code = [
-      "   Message Contents:\n    Time (4 Bytes)\n    C1 Time (4 Bytes)\nC1 Rand Data (1528 Bytes)",
+      "    Message Contents:\n      Time (4 Bytes)\n    C1 Time (4 Bytes)\nC1 Rand Data (1528 Bytes)",
       "      Payload: \n0x67 0x7C 0x48 0x1A\n0x67 0x7C 0x48 0x1A\n0x01 0x02 0x03 0x04\n        ...\n0x21 0x22 0x23 0x24",
     ];
     yield* sendMessage(view, "S2", s2Code, Colors["blue"], serverAnchorPoint, clientAnchorPoint, 6)
 
     // Will be dumped at the end
     yield* waitFor(5);
+
+    const transitionTime = .5
+    const transitionHeight = 800
+    yield* all(
+      ...messages.map((r) => r().opacity(0, transitionTime)),
+      ...lines.map((r) => r().opacity(0, transitionTime)),
+      clientBottom().opacity(0, transitionTime),
+      serverBottom().opacity(0, transitionTime),
+      top().width(width + 200, transitionTime),
+      top().position([0, 0], transitionTime),
+    )
+
+    yield* all(
+      top().height(transitionHeight, transitionTime),
+      client().height(transitionHeight, transitionTime),
+      server().height(transitionHeight, transitionTime),
+      client().width((width + 200 - gap) / 2, transitionTime),
+      server().width((width + 200 - gap) / 2, transitionTime),
+    );
+
+    // Remove unnecessary elements from the canvas
+    bottom().remove();
+    lines.map((r) => r().remove());
+    messages.map((r) => r().remove());
+
+    // Will be dumped at the end
+    yield* waitFor(5);
   }
 )
+
+let messages: Array<Reference<CodePopupRect> | Reference<Line>> = []
 
 function* sendMessage(view: View2D, title: string, code: string[], color: string, anchor: Vector2Signal<void>, destination: Vector2Signal<void>, index: number) {
   // The initial client packet
   const popup = codePopupAndAnimate(view, code, color, title);
+  messages.push(popup);
+
+  // TODO, no need for this to be its own function
   yield* animateCodePopup(popup, code, anchor().addY(((verticalLen / flows) * index)))
+
   const connection = createConnectionLine(view, [
     [popup().x(), popup().y()],
-    [destination().x - transitPadding(), popup().y()]
+    [destination().x - transitPadding(destination().x), popup().y()]
   ]);
+  messages.push(connection);
+
+  // TODO, no need for this to be its own function
   yield* animateConnectionLine(connection, popup, destination().x);
 }
 
-function transitPadding(): number {
-  return 8 + (packet_size / 2)
+function transitPadding(d: number): number {
+  if (d > 0) {
+    return 8 + (packet_size / 2)
+  }
+  return -1 * (8 + (packet_size / 2))
 }
 
 function codePopupAndAnimate(view: View2D, code: string[], color: string, title: string): Reference<CodePopupRect> {
   const ref = createRef<CodePopupRect>();
   view.add(
-    <CodePopupRect ref={ref} height={packet_size} width={packet_size} alignItems={"center"} gap={gap} opacity={0} fill={color} title={title} title_color={"white"} code={code[0]} maxWidth={"100%"} minHeight={50} zIndex={10} />
+    <CodePopupRect
+      ref={ref}
+      height={packet_size}
+      width={packet_size}
+      alignItems={"center"}
+      gap={gap}
+      opacity={0}
+      fill={color}
+      title={title}
+      title_color={"white"}
+      code={code[0]}
+      //text_color={"white"}
+      maxWidth={"100%"}
+      minHeight={50}
+      zIndex={10}
+    />
   );
 
   return ref;

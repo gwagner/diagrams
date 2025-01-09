@@ -1,5 +1,5 @@
 import { Rect, RectProps, Txt } from "@motion-canvas/2d";
-import { all, Color, createRef, Reference, SignalValue, useLogger, Vector2 } from "@motion-canvas/core";
+import { all, Color, createRef, createSignal, Reference, SignalValue, } from "@motion-canvas/core";
 import { pSBC } from "./pscb";
 
 export interface StandardPopupRectProps extends RectProps {
@@ -7,12 +7,15 @@ export interface StandardPopupRectProps extends RectProps {
   title: SignalValue<string>;
   title_color: SignalValue<string>;
   text: SignalValue<string>;
+  text_color: SignalValue<string>;
 }
 
 export class StandardPopupRect extends Rect {
 
+  private readonly container: Reference<StandardPopupRect>;
   private readonly title_node = createRef<Txt>();
   private readonly text_node = createRef<Txt>();
+  public text_signal = createSignal("");
 
   // implementation
   public constructor(props?: StandardPopupRectProps) {
@@ -33,22 +36,23 @@ export class StandardPopupRect extends Rect {
       fill: new Color(fill),
     });
 
+    this.container = () => this;
 
-    const text =
+    const title =
       <Rect width={"100%"} alignItems={"start"}>
-        <Txt ref={this.title_node} width={"100%"} text={props?.title || ""} fill={props?.title_color} fontSize={48} textAlign={"center"} fontWeight={800} opacity={0} />
+        <Txt ref={this.title_node} width={"100%"} text={props?.title || ""} fill={props?.title_color || "white"} fontSize={48} textAlign={"center"} fontWeight={800} opacity={0} />
       </Rect>;
 
-    const codeContainer =
-      <Rect grow={1} alignItems={"center"} justifyContent={"center"} />;
+    const textContainer =
+      <Rect grow={1} alignItems={"center"} justifyContent={"center"} >
+        <Txt ref={this.text_node} text={this.text_signal} fill={props?.title_color || "white"} fontSize={36} textWrap textAlign={"center"} fontWeight={800} opacity={0} />
+      </Rect>;
 
-    codeContainer.add(
-      <Txt ref={this.text_node} text={props?.text || ""} fontSize={36} textWrap textAlign={"center"} fontWeight={800} opacity={0} />
-    )
+    this.text_signal(props?.text || "")
 
 
-    this.add(text);
-    this.add(codeContainer);
+    this.add(title);
+    this.add(textContainer);
   }
 
   public *hideContents() {

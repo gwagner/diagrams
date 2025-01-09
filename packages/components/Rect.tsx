@@ -13,13 +13,11 @@ export interface FlowRectProps extends RectProps {
 export class FlowRect extends Rect {
 
   private readonly container: Reference<FlowRect>;
-  private readonly previous_node?: Reference<FlowRect>;
 
   private readonly text_node = createRef<Txt>();
 
   // implementation
   public constructor(props?: FlowRectProps) {
-    const ref = createRef<FlowRect>();
 
     super({
       // If you wanted to ensure that layout was always
@@ -33,15 +31,13 @@ export class FlowRect extends Rect {
       minHeight: 180,
       padding: 32,
       radius: 20,
+      smoothCorners: true,
       stroke: props.fill,
       ...props,
       fill: new Color(pSBC(-.95, props.fill)),
     });
 
     this.container = () => this;
-    if (props.prev_node) {
-      this.previous_node = props.prev_node;
-    }
 
     const text = <Txt ref={this.text_node} width={"100%"} text={props.text} fill={props.text_color} fontSize={32} textWrap textAlign={"center"} fontWeight={800} />;
 
@@ -50,12 +46,10 @@ export class FlowRect extends Rect {
 
   public connectLeftToRight(next: Reference<Rect>): Arrow {
     return new Arrow(this.container).right().to(next).left();
-
   }
 
   public connectRightToLeft(next: Reference<Rect>): Arrow {
     return new Arrow(this.container).left().to(next).right();
-
   }
 
   public connectBottomToTop(next: Reference<Rect>): Arrow {
@@ -64,7 +58,6 @@ export class FlowRect extends Rect {
 
   public connectTopToBottom(next: Reference<Rect>): Arrow {
     return new Arrow(this.container).top().to(next).bottom();
-
   }
 
   public getAbsLeftCenter(): Vector2Signal {
